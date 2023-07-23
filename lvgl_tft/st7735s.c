@@ -10,6 +10,7 @@
 #include "disp_spi.h"
 #include "driver/i2c.h"
 #include "driver/gpio.h"
+#include "rom/gpio.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -38,11 +39,13 @@ static void st7735s_send_cmd(uint8_t cmd);
 static void st7735s_send_data(void * data, uint16_t length);
 static void st7735s_send_color(void * data, uint16_t length);
 static void st7735s_set_orientation(uint8_t orientation);
+#ifdef CONFIG_LV_M5STICKC_HANDLE_AXP192
 static void i2c_master_init();
 static void axp192_write_byte(uint8_t addr, uint8_t data);
 static void axp192_init();
 static void axp192_sleep_in();
 static void axp192_sleep_out();
+#endif
 
 /**********************
  *  STATIC VARIABLES
@@ -160,12 +163,16 @@ void st7735s_flush(lv_disp_drv_t * drv, const lv_area_t * area, lv_color_t * col
 void st7735s_sleep_in()
 {
 	st7735s_send_cmd(0x10);
+#ifdef CONFIG_LV_M5STICKC_HANDLE_AXP192
 	axp192_sleep_in();
+#endif
 }
 
 void st7735s_sleep_out()
 {
+#ifdef CONFIG_LV_M5STICKC_HANDLE_AXP192
 	axp192_sleep_out();
+#endif
 	st7735s_send_cmd(0x11);
 }
 
@@ -215,6 +222,7 @@ static void st7735s_set_orientation(uint8_t orientation)
     st7735s_send_data((void *) &data[orientation], 1);
 }
 
+#ifdef CONFIG_LV_M5STICKC_HANDLE_AXP192
 static void i2c_master_init()
 {
 	i2c_config_t i2c_config = {
@@ -267,3 +275,4 @@ static void axp192_sleep_out()
 {
 	axp192_write_byte(0x12, 0x4d);
 }
+#endif
